@@ -1,175 +1,172 @@
-# Automated Cryptocurrency Trading System with XAI and Reinforcement Learning
+# 📌 AI 기반 세율 최적화 및 경제적 영향 분석 시스템 개발  
 
-This project builds a system that performs real-time automated cryptocurrency trading by integrating explainable AI (XAI) with adaptive risk management by applying Hierarchical Reinforcement Learning (HRL) and Multi-Agent Reinforcement Learning (MARL).
+## 📖 Abstract  
+AI가 경제 전반에 걸쳐 노동과 생산성을 변화시키면서, AI 활용 기업과 일반 기업 간 조세 형평성 문제가 대두되고 있다. 하지만 기존 연구에서는 AI 세율의 최적 수준을 도출하는 구체적인 모델이 제시되지 않았다.
+AI 세율 최적화 알고리즘을 개발하고, DID 분석 및 거시경제 시뮬레이션을 통해 AI 세금이 경제에 미치는 영향을 정량적으로 분석한다. 또한, 이를 적용한 AI 정책 시뮬레이션 시스템을 개발하여, 실시간 데이터 기반 정책 결정이 가능하도록 한다.
+- 핵심어(Keywords): AI 세금, ML, 강화학습, DID 분석, 거시경제 시뮬레이션
 
-이 프로젝트는 계층적 강화학습(HRL), 멀티 에이전트 강화학습(MARL)을 적용하여 적응형 리스크 관리와 더불어 설명 가능한 AI(XAI)를 통합해 실시간으로 암호화폐 자동 매매를 수행하는 시스템을 구축합니다.
-
----
-
-## 🚀 Features
-- **HLC & LLC** (High-Level Controller & Low-Level Controller)
-- **Multi-Agency System**
-- **Real-time data processing and decision making**
-- **Adaptive Risk Management**
-- **XAI Integration**
+### 🔗 관련 연구 논문  
+1. Acemoglu, D., & Restrepo, P. (2020). *Robots and Jobs: Evidence from US Labor Markets*. Journal of Political Economy.  
+   - [🔗 논문 링크](https://www.journals.uchicago.edu/doi/10.1086/705716)  
+2. Brynjolfsson, E., & McAfee, A. (2014). *The Second Machine Age: Work, Progress, and Prosperity in a Time of Brilliant Technologies*.  
+   - [🔗 논문 링크](https://wwnorton.com/books/9780393239355)  
 
 ---
 
-## 📌 Contents
-1. [System Architecture](#system-architecture)
-2. [Main Components](#main-components)
-3. [Data Requirements](#data-requirements)
-4. [Data Source](#data-source)
-5. [How to Install](#how-to-install)
-6. [Performance Optimization](#performance-optimization)
-7. [Future Improvements](#future-improvements)
-8. [License](#license)
+## 📑 목차  
+### Ⅰ. 서론
+
+- 연구 배경 및 필요성
+- 연구 질문 및 목표
+- 기존 연구와의 차별점
+- 논문의 구성
+
+### Ⅱ. 관련 연구
+
+- AI 도입과 경제 변화 (기존 연구 분석)
+- AI 세금 개념 및 정책 사례
+- AI 세율 최적화 관련 알고리즘 연구
+
+### Ⅲ. AI 세율 최적화 모델 개발
+
+- 머신러닝 기반 최적 세율 도출 (GA, RL 적용)
+- DID 분석을 통한 AI 투자 기업 vs 비투자 기업 비교
+- 거시경제 시뮬레이션 (CGE 모델 활용)
+
+### Ⅳ. AI 세금 정책 시뮬레이션 시스템 구현
+
+- 시스템 아키텍처 설계
+- 데이터 수집 및 전처리 (실제 데이터 활용)
+- 알고리즘 및 모델 구현
+- UI/UX 설계 및 최종 시스템 구축
+
+### Ⅴ. 실험 및 평가
+
+- AI 세율 조정에 따른 경제적 효과 분석
+- 정책 적용 시뮬레이션 결과 비교
+- 알고리즘 성능 평가
+
+### Ⅵ. 결론 및 향후 연구 방향
+
+- 연구 요약 및 주요 기여
+- 연구 한계 및 향후 보완점
+- AI 세금 정책의 미래 방향성 
 
 ---
 
-## 2. Main Components
+## 📌 1. 서론  
 
-### 2-1. High-Level Controller (HLC)
-- Based on **PPO** algorithm
-- Determines overall trading direction (Buy/Sell/Hold)
+### 1.1 연구의 필요성과 배경  
+AI 기술이 빠르게 발전하며 노동시장과 기업 구조가 변화하고 있다. AI가 인간 노동을 대체하는 속도가 빨라지면서, 노동을 기반으로 한 기존 조세 시스템이 흔들리고 있다. 전통적인 기업들은 인건비와 함께 법인세 및 사회보장 기여금을 부담하지만, AI 기반 기업은 상대적으로 낮은 조세 부담을 가진다. 이로 인해 AI 세금(AI Tax) 도입에 대한 논의가 활발해지고 있으며, 일부 국가는 AI 사용에 따른 세금 부과를 고려하고 있다.
+그러나 AI 세율을 결정하는 명확한 기준이나 최적 세율을 산출하는 연구는 부족하다. 기존 연구들은 주로 AI가 고용에 미치는 영향을 분석하거나 AI 사용 기업과 그렇지 않은 기업 간의 차이를 비교하는 데 집중되어 있다. AI 세율의 경제적 효과를 정량적으로 분석하고 최적화하는 연구가 필요하다.
 
-```python
-import torch
-import torch.nn as nn
+※ 한국, 미국, 일본, EU 4 개의 국가에 대하여 비교 분석 예정
 
-class HLCModel(nn.Module):
-    def __init__(self, input_dim, output_dim):
-        super(HLCModel, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, output_dim)
-
-    def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        return torch.softmax(self.fc3(x), dim=-1)
-```
-
-### 2-2. Low-Level Controller (LLC)
-- Based on **DDPG** algorithm
-- Volume optimization and detailed execution
-
-```python
-from stable_baselines3 import DDPG
-from stable_baselines3.common.envs import DummyVecEnv
-import numpy as np
-import gym
-
-class TradingEnv(gym.Env):
-    def __init__(self):
-        super(TradingEnv, self).__init__()
-        self.action_space = gym.spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
-        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(10,), dtype=np.float32)
-
-    def reset(self):
-        return np.random.rand(10)
-
-    def step(self, action):
-        reward = np.random.rand()
-        done = False
-        return np.random.rand(10), reward, done, {}
-
-env = DummyVecEnv([lambda: TradingEnv()])
-llc_model = DDPG("MlpPolicy", env, verbose=1)
-```
-
-### 2-3. Multi-Agency System
-- Agents that handle multiple time scales
-
-### 2-4. Adaptive Risk Management
-- Dynamic risk adjustment based on market volatility
-
-### 2-5. XAI Module
-- Interpreting and visualizing the decision-making process
 
 ---
 
-## 3. Data Requirements
-- **Real-Time Price Data (OHLCV)**
-- **Technical Indicators**
-- **Market Status Data** (Volatility indicators, volume growth rate, etc.)
-- **Trading Results Data**
-- **Risk Management Data**
+### 1.2 AI 세금 도입의 경제적 논리  
+AI 세금 도입을 뒷받침하는 경제적 논리는 다음과 같다.  
+
+1. **조세 중립성 문제 해결**  
+   - 기존 조세 체계에서는 기업이 AI를 도입하면 노동 비용 절감 효과를 얻지만, 이로 인해 조세 수입이 감소하는 문제가 발생한다.  
+   - 노동세에 의존하는 조세 구조를 AI에도 적용함으로써, 조세 중립성을 유지하고 조세 수입을 보전할 필요가 있다.  
+
+2. **AI가 창출하는 경제적 부가가치의 공정한 분배**  
+   - AI 기술은 특정 기업과 산업에 집중적으로 이익을 제공할 가능성이 높다.  
+   - AI 세금 도입을 통해 AI 도입에 따른 사회적 비용(예: 일자리 감소)을 보전하고, 재분배 효과를 극대화할 수 있다.  
+
+3. **노동시장 재편 및 실업 문제 완화**  
+   - AI 도입으로 인해 기존 노동시장이 축소될 경우, 사회적 비용이 증가할 수 있다.  
+   - AI 세금의 일부를 노동자의 재교육 및 사회 안전망 구축에 활용할 수 있다.  
 
 ---
 
-## 4. Data Source
+### 🔗 3. 사용할 데이터 및 분석 방법  
+본 연구는 한국, 미국, 일본, EU 등 주요 국가를 대상으로 데이터를 수집하여 분석할 예정이다.  
 
-### 4-1. Real-Time Price Data (OHLCV)
-- CoinMarketCap API
-- Binance API (ccxt Library)
-- CoinDesk Data API
+#### 3.1 패널 데이터 분석  
+- **OECD AI Index**: [🔗 링크](https://oecd.ai/en/data)  
+- **세계은행 AI 투자 데이터**: [🔗 링크](https://data.worldbank.org/)  
+- **한국은행 경제통계 시스템**: [🔗 링크](https://ecos.bok.or.kr/)  
 
-### 4-2. Technical Indicators
-- Direct calculation using **TA-Lib** library
+#### 3.2 DID 분석  
+- **미국 노동통계국(BLS) AI 관련 고용 데이터**: [🔗 링크](https://www.bls.gov/)  
+- **EU AI 세금 정책 및 경제 데이터**: [🔗 링크](https://ec.europa.eu/eurostat)  
 
-### 4-3. Market Status Data
-- **Cboe Volatility Index (VIX)**
-- **Financial Modeling Prep API**
+#### 3.3 거시경제 시뮬레이션(CGE 모델링)  
+- **IMF 거시경제 데이터**: [🔗 링크](https://www.imf.org/en/Data)  
+- **UNESCO 과학 및 기술 투자 데이터**: [🔗 링크](https://uis.unesco.org/)  
 
-### 4-4. Trading Results Data
-- To be added in the future
+이러한 데이터 수집 및 분석을 통해 AI 세금 도입이 경제 전반에 미치는 영향을 객관적으로 평가하고, 정책적 시사점을 도출할 것이다. 🚀  
 
-### 4-5. Risk Management Data
-#### 4-5-1. Risk Management Algorithm
-- Algorithm development
-#### 4-5-2. Historical Data
-- CoinMarketCap API
-- Aberdata OHLCV Endpoint
-#### 4-5-3. Exchange Data
-- Crypto APIs's Market Data API
-```python
-import ccxt
-import pandas as pd
+### Ⅱ. 관련 연구
+1. AI 도입과 경제 변화 (기존 연구 분석)
+AI가 노동시장과 생산성에 미치는 영향 분석 (Autor et al., 2019)
+AI 기술 발전이 고용 구조를 변화시키는 과정 (Acemoglu & Restrepo, 2020)
+2. AI 세금 개념 및 정책 사례
+AI 세금 도입을 고려하는 국가 사례: EU, 미국 일부 주, 한국 정책 연구
+기존 조세 체계와 AI 세율의 차이
+3. AI 세율 최적화 관련 알고리즘 연구
+최적 세율 도출을 위한 경제 모델 연구 (Mirrlees, 1971)
+유전자 알고리즘(GA) 및 강화학습(RL) 기반 세금 최적화 연구
 
-exchange = ccxt.binance()
-symbol = 'BTC/USDT'
-timeframe = '1m'  # Can be adjusted to 1h, 3h, 1D, etc.
 
-def fetch_data():
-    ohlcv = exchange.fetch_ohlcv(symbol, timeframe)
-    df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-    return df
-```
+### 🔗 Ⅱ 연구 질문 (Research Questions)
+본 연구에서는 AI 세금 도입의 경제적 효과 탐색과 더불어 AI 세율의 최적 수준을 도출하는 ML 가반 최적화 알고리즘 개발을 목표로 한다. 
+   -	Q1: AI 세금이 기업 투자와 경제 성장에 미치는 영향은 무엇인가? 
+   -	Q2: AI 세율의 최적 수준은 어떻게 설정할 수 있는가? 
+   -	Q3: AI 세율을 정책적으로 적용했을 때의 거시경제적 효과는 무엇인가?
+**2-1 기존 연구와의 차별점**
+   -	AI 세율 최적화 알고리즘 개발 
+      → 머신러닝 기법(유전자 알고리즘, 강화학습 등)을 활용하여 최적 세율 도출
+   -	DID 분석 및 거시경제 시뮬레이션 결합 
+      → AI 세금 도입 전후의 경제 효과를 정량적으로 분석
+   -	AI 세금 정책 시뮬레이션 시스템 구축 
+      → 최적 세율을 정책적으로 적용할 수 있는 시스템 개발
 
----
+### Ⅲ. 연구 방법론 (Methodology)
+AI 세율의 최적 수준을 도출하기 위해 아래의 방법론을 적용
+•	**AI 세율 최적화 알고리즘 개발**
+   o	Genetic Algorithm, Reinforcement Leaning을 활용한 최적 세율 도출 모델 구축
+   o	기업의 생산성, 경제 성장률 등을 고려한 최적 세율 도출
+•	**실증 연구 및 데이터 분석**
+   o	Panel Data Analysis
+   o	DID 기법(이중차분법; Difference-in-Differences)
+      •	거시경제 시뮬레이션
+   o	CGE 모델(Computable General Equilibrium)
+   ※ Agent-Based Modeling 활용 가능 여부 파악 필요
 
-## 5. How to Install
+### Ⅳ. 관련 기술 현황
+AI 세율과 관련된 기존 연구는 크게 두 가지 범주
+1.	**AI 과세의 필요성과 경제적 영향 분석**
+   o	기존 연구들은 AI 과세가 노동시장과 기업 경영에 미치는 영향을 이론적으로 분석하는데 초점
+   o	그러나 구체적인 세율 최적화 알고리즘을 개발한 연구는 부족
+2.	**세율 최적화 관련 연구**
+   o	기존 조세 정책 최적화 연구에서는 경제 성장과 세수 균형을 고려하여 최적 세율을 도출하는 방식이 제안되었다.
+   o	그러나 AI에 특화된 조세 최적화 모델은 연구가 미흡한 상태이다.
+   이 두 가지 연구를 결합하여 AI 세율 최적화 모델을 구축하고, 실증적으로 평가하는 점에서 차별화된 접근을 제시
 
-### 5-1. Install Required Libraries
-```sh
-pip install -r requirements.txt
-```
+### Ⅴ. 실험 및 평가
+AI 세율의 최적 수준을 도출하기 위해 유전자 알고리즘(GA)과 강화 학습(RL) 모델을 적용한 최적화 알고리즘을 개발한다
+1. **AI 세율 조정에 따른 경제적 효과 분석**
+   - AI 세율 변화에 따른 GDP, 실업률, AI 투자율 변화 분석
+2. **정책 적용 시뮬레이션 결과 비교**
+   - AI 세율 조정 전후 경제적 차이 비교
+3. **알고리즘 성능 평가**
+   - AI 세율 최적화 모델의 정확도 및 수렴 속도 분석
+### Ⅵ. 실험 결과
+1. **패널 데이터 분석**
+ - 한국, 미국, 일본, EU의 AI 도입률, 기업 매출 변화, 고용률 변화 비교
+2. DID 분석
+ - AI 세금 부과 국가와 비부과 국가 간 경제 성장률 및 기업 투자 차이 비교
+3. 거시경제 시뮬레이션 결과
+: CGE 모델을 활용하여 AI 세율이 경제 성장률에 미치는 영향을 시뮬레이션
 
-### 5-2. Setting Environment Variables
-```sh
-export EXCHANGE_API_KEY=your_api_key
-export EXCHANGE_SECRET_KEY=your_secret_key
-```
+### Ⅶ. 결론
+AI 세율 최적화 알고리즘을 개발하고, 실증 분석을 통해 AI 세금이 경제에 미치는 영향을 평가하며 이를 토대로 시뮬레이션 시스템을 구축한다.
 
----
-
-## 6. Performance Optimization
-- **Distributed Processing with Apache Kafka**
-- **GPU Utilization (CUDA)**
-- **Dynamic Learning Cycle Adjustment**
-- **Integrated Risk Management**
-
----
-
-## 7. Future Improvements
-- **Multi-asset support**
-- **Enhanced XAI functionality**
-- **Real-time dashboard implementation**
-- **Backtesting module improvements**
-
----
-
-### 깃허브 commit message 참고 자료
-<img src="git_message.png" alt="My Image" width="500">
+### 🔗 사용할 데이터 및 출처
+- OECD AI Policy Observatory: https://oecd.ai/
+- World Bank Open Data: https://data.worldbank.org/
+- IMF Economic Outlook Database: https://www.imf.org/en/Publications/WEO
