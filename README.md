@@ -3,7 +3,7 @@
 ## 📖 Abstract  
 AI가 경제 전반에 걸쳐 노동과 생산성을 변화시키면서, AI 활용 기업과 일반 기업 간 조세 형평성 문제가 대두되고 있다. 하지만 기존 연구에서는 AI 세율의 최적 수준을 도출하는 구체적인 모델이 제시되지 않았다.
 AI 세율 최적화 알고리즘을 개발하고, DID 분석 및 거시경제 시뮬레이션을 통해 AI 세금이 경제에 미치는 영향을 정량적으로 분석한다. 또한, 이를 적용한 AI 정책 시뮬레이션 시스템을 개발하여, 실시간 데이터 기반 정책 결정이 가능하도록 한다.
-- 핵심어(Keywords): AI 세금, ML, 강화학습, DID 분석, 거시경제 시뮬레이션
+- 핵심어(Keywords): AI 세금, ML, 강화학습, 데이터 분석, 거시경제 시뮬레이션
 
 ### 🔗 관련 연구 논문  
 1. Acemoglu, D., & Restrepo, P. (2020). *Robots and Jobs: Evidence from US Labor Markets*. Journal of Political Economy.  
@@ -11,6 +11,35 @@ AI 세율 최적화 알고리즘을 개발하고, DID 분석 및 거시경제 �
 2. Brynjolfsson, E., & McAfee, A. (2014). *The Second Machine Age: Work, Progress, and Prosperity in a Time of Brilliant Technologies*.  
    - [🔗 논문 링크](https://wwnorton.com/books/9780393239355)  
 
+### 😊 How to Install
+1. 가상환경 설치
+   ```bash
+   python -3.11 -m venv .venv
+   ```
+   ```bash
+   .\.venv\Scripts\activate
+   ```
+2. requirements.txt
+   ```bash
+      pip install -r requirements.txt
+   ```
+3. ./.streamlit/secrets.toml 파일 생성 및 연결 설정
+   e.g. 
+      [connections.ossdb]
+      dialect = 'mysql'
+      username = "username"
+      password = "userpassword"
+      host = "hostname"
+      database = "dbname"
+4. db연결
+※ 작성자의 경우 docker와 dbeaver를 사용함
+   ```bash   
+   docker-compose up -d
+   ```
+5. streamlit 실행
+   ```bash
+   streamlit run home.py
+   ```
 ---
 
 ## 📑 목차  
@@ -60,7 +89,7 @@ AI 세율 최적화 알고리즘을 개발하고, DID 분석 및 거시경제 �
 AI 기술이 빠르게 발전하며 노동시장과 기업 구조가 변화하고 있다. AI가 인간 노동을 대체하는 속도가 빨라지면서, 노동을 기반으로 한 기존 조세 시스템이 흔들리고 있다. 전통적인 기업들은 인건비와 함께 법인세 및 사회보장 기여금을 부담하지만, AI 기반 기업은 상대적으로 낮은 조세 부담을 가진다. 이로 인해 AI 세금(AI Tax) 도입에 대한 논의가 활발해지고 있으며, 일부 국가는 AI 사용에 따른 세금 부과를 고려하고 있다.
 그러나 AI 세율을 결정하는 명확한 기준이나 최적 세율을 산출하는 연구는 부족하다. 기존 연구들은 주로 AI가 고용에 미치는 영향을 분석하거나 AI 사용 기업과 그렇지 않은 기업 간의 차이를 비교하는 데 집중되어 있다. AI 세율의 경제적 효과를 정량적으로 분석하고 최적화하는 연구가 필요하다.
 
-※ 한국, 미국, 일본, EU 4 개의 국가에 대하여 비교 분석 예정
+※ 한국, 중국, 일본, 미국, 영국, 프랑스, 독일 7 개의 국가에 대하여 비교 분석
 
 
 ---
@@ -86,17 +115,17 @@ AI 세금 도입을 뒷받침하는 경제적 논리는 다음과 같다.
 본 연구는 한국, 미국, 일본, EU 등 주요 국가를 대상으로 데이터를 수집하여 분석할 예정이다.  
 
 #### 3.1 패널 데이터 분석  
-- **OECD AI Index**: [🔗 링크](https://oecd.ai/en/data)  
-- **세계은행 AI 투자 데이터**: [🔗 링크](https://data.worldbank.org/)  
-- **한국은행 경제통계 시스템**: [🔗 링크](https://ecos.bok.or.kr/)  
-
+- **WIPO GII(Global Innovation Index)**
+- **WorldBank General Goverment Revenue**
+- **WorldBank Individuals using the Internet**
+- **WorldBank Unemployment Rate**
 #### 3.2 DID 분석  
-- **미국 노동통계국(BLS) AI 관련 고용 데이터**: [🔗 링크](https://www.bls.gov/)  
-- **EU AI 세금 정책 및 경제 데이터**: [🔗 링크](https://ec.europa.eu/eurostat)  
+- **WIPO Patent publications for AI**  
+- **다른 데이터터**
 
 #### 3.3 거시경제 시뮬레이션(CGE 모델링)  
-- **IMF 거시경제 데이터**: [🔗 링크](https://www.imf.org/en/Data)  
-- **UNESCO 과학 및 기술 투자 데이터**: [🔗 링크](https://uis.unesco.org/)  
+- **거시경제 데이터**
+- **UNESCO GERD as a percentage of GDP**
 
 이러한 데이터 수집 및 분석을 통해 AI 세금 도입이 경제 전반에 미치는 영향을 객관적으로 평가하고, 정책적 시사점을 도출할 것이다. 🚀  
 
@@ -167,6 +196,6 @@ AI 세율의 최적 수준을 도출하기 위해 유전자 알고리즘(GA)과 
 AI 세율 최적화 알고리즘을 개발하고, 실증 분석을 통해 AI 세금이 경제에 미치는 영향을 평가하며 이를 토대로 시뮬레이션 시스템을 구축한다.
 
 ### 🔗 사용할 데이터 및 출처
-- OECD AI Policy Observatory: https://oecd.ai/
-- World Bank Open Data: https://data.worldbank.org/
-- IMF Economic Outlook Database: https://www.imf.org/en/Publications/WEO
+- WIPO
+- World Bank Open Data
+- Unesco
