@@ -9,7 +9,7 @@ sql = """
     select 
        *
     from 
-        master_data_by_category
+        master_data_by_category_clear
     where 1=1
     limit 10;
 """
