@@ -3,12 +3,12 @@
 
 ## 🔹 1. 분석 개요
 - AI 세금(AI-specific tax) 변수가 존재 X 
-- **Proxy Variable(대리 변수)**를 사용하여 분석을 진행.
+- **Proxy Variable(대리 변수)** 를 사용하여 분석을 진행.
 
 ## ✔️ 변수 선정
 ### ✅ AI 세금 (Proxy)
 - WIPO Tax → AI 관련 법적·조세 환경을 대체 변수로 활용
-(WIPO는 지식재산권을 다루며, AI 관련 특허·세금 관련 정책을 포함할 가능성 유)
+(WIPO는 지식재산권을 다루며, AI 관련 특허·세금 관련 정책을 포함할 가능성 있음)
 - **Corporate Tax** → AI 기업을 포함한 전반적인 법인세 수준 반영
 ### ✅ 기업 투자 (Proxy)
 - **Patent Publications** → AI 관련 IT 특허 출원 건수 (AI 투자 대리 지표)
@@ -159,4 +159,4 @@
   
 - **계수 추정 결과**에서 `Corporate Tax`의 P-값이 유의미(0.0362), 이 변수는 모델에서 중요한 역할을 한다고 할 수 있음
 
-![alt text](image-2.png)
+![alt text](R_Hausman_Test.png)

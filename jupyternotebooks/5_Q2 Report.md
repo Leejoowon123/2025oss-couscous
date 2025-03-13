@@ -23,11 +23,13 @@
 ### Laffer Curve 최적화 결과
 
 ## 정책적 시사점
+- 현재 AI 세율이 존재하지 않아 GDP와의 상관관계가 높은(Threshold = 0.5) 후보 변수를 선정하여 최적 차수와 최적 AI 세율 Proxy로 설정 가능한 정보는 아래와 같다.
+    **최적 차수**: 2, 
+    **최적 AI 세율 Proxy**: AI_Tax_Proxy_Knowledge and technology outputs_Patent Publications
+- 0 ~ 0.5%까지의 세율을 결정했을 때, 0.05수준에서 Laffer Curve와 최적화 알고리즘을 적용했을 때 GDP가 가장 높은 수준으로 나타났음.
+![alt text](R_Laffer_Curve.png)
 
 ## 4. 결론 및 최적 AI 세율 설정
-
-
-![alt text](image.png)
 
 ### Trouble Shooting
 #### 1. 최적 세율이 0%로 나오는 문제
@@ -40,7 +42,7 @@
   - 세율과 GDP의 관계가 단순 2차 함수로 설명되지 않을 가능성 존재
   -  고차항(3차항 이상)이 필요할 것으로 보임
 
-![alt text](image-1.png)
+![alt text](R_AI_TAX_0.png)
 
 #### 1. 해결법
 1. 다항 회귀 차수를 증가 (Quadratic → Cubic)
@@ -70,7 +72,7 @@
     - scipy.optimize.minimize 함수에서 AI 세율의 합리적인 범위를 설정하지 않음.
     - 현실적인 최적 AI 세율이 0~50% 이내여야 하지만, 최적화 과정에서 더 높은 값을 찾는 문제가 발생.
 
-![alt text](image-3.png)
+![alt text](R_AI_TAX_Max.png)
 
 #### 2. 해결법
 
@@ -89,20 +91,20 @@
     - 회귀 계수(β0, β1, β2, β3)가 비정상적으로 크거나 부호가 이상함.
     - 특히 β1이 양수, β2가 음수, β3가 양수로 나타나서 정상적인 포물선형 (Laffer Curve) 형태를 갖추지 못할 가능성이 높음.
 
-![alt text](image-4.png)
+![alt text](R_No_Laffer_Curve.png)
 
 2. 다중공선성 (VIF 값이 비정상적으로 큼)
     - AI 세율의 다항식 항(AI_Tax_Proxy, AI_Tax_Proxy², AI_Tax_Proxy³)의 VIF 값이 15000~60000 수준으로 매우 높음.
     - 다중공선성 문제를 야기하여 회귀 계수 추정값이 불안정
 
-![alt text](image-5.png)
+![alt text](R_VIF.png)
 
 3. Laffer Curve 분석에서 AI Tax Proxy 증가에 따라 GDP가 선형적으로 증가하는 문제
 
     - Laffer Curve에서는 최적의 세율에서 GDP가 최대가 되어야 하지만, 현재 그래프에서는 AI 세율이 증가할수록 GDP도 계속 증가
     - 최적 세율이 0.5(50%)로 설정되는 이유는 단순히 모델이 최댓값을 가장 큰 범위 끝에서 찾기 때문으로 판단
 
-![alt text](image-6.png)
+![alt text](R_liner_Laffer.png)
 
 #### 3번 해결법
 1. 다중공선성 완화
