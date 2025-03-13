@@ -34,7 +34,6 @@
 | **Korea**  | 6 | AI_Tax_Proxy_GERD_GNI_per_capita_WIPO Tax |
 | **UK**     | 5 | AI_Tax_Proxy_Institutions_WIPO Tax |
 
-
 ### 2.3 국가별 Laffer Curve 분석 및 최적 AI 세율 도출  
 - 최적 AI 세율 Proxy를 사용하여 국가별로 Laffer Curve를 학습하였으며, 이를 기반으로 최적 AI 세율을 도출
 
