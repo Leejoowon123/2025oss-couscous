@@ -63,12 +63,14 @@ AI 세율이 도입된 국가와 그렇지 않은 국가를 직접 비교할 수
 
 
 ### **2.4 Synthetic Control: GDP Difference Summary**
-- 합성 통제법(Synthetic Control)을 통해 실제 GDP와 합성된 GDP의 차이를 평균, 최소, 최대로 요약한 표
+- 합성 통제법(Synthetic Control)을 통해 실제 GDP와 합성된 GDP의 차이를 평균, 최소, 최대로 요약한 표와 사진
 
 - **해석**:
   - **Avg Difference(%):** 평균 차이 → 합성 통제국의 GDP가 실제 GDP보다 얼마나 높은지(양수) 혹은 낮은지(음수)
   - **Min/Max Difference(%):** 시계열 구간 중 최소/최대 편차
   - 대부분 국가에서 평균 차이가 매우 크지 않음(± 수% 이내)
+
+![Synthetic Control GDP Differenc](R_Synthetic_Control.png)
 
 | Country                     | Avg Difference (%) | Min Difference (%) | Max Difference (%) |
 |-----------------------------|--------------------|--------------------|--------------------|
