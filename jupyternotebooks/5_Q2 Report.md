@@ -1,37 +1,80 @@
 # 🔹 Q2: "AI 세율의 최적 수준은 어떻게 설정할 수 있는가?"에 대한 분석 방법
 
 ## 1. 분석 개요
-- 현재 AI 세율 데이터가 존재하지 않으므로 대체 변수를 활용하여 AI 세율이 기업 투자 및 경제 성장에 미치는 영향을 분석해야 한다.
-- 4_Q1 Report.md에서 AI 관련 세금(WIPO Tax, Corporate Tax)과 기업 투자 및 경제 성장 간의 관계를 분석한 내용을 반영하여, AI 세율의 최적 수준을 설정하는 분석을 진행
+- 본 연구에서는 AI 세율(AI Tax)의 최적 수준을 설정하기 위해 국가별 GDP와의 관계를 분석  
+- AI 세율 Proxy를 국가별로 최적 조합을 찾아 생성하였으며, Laffer Curve 및 최적화 알고리즘을 적용하여 국가별 최적 AI 세율을 도출함
 
-## 2. AI 세율 최적 수준 설정을 위한 분석 방법
+## 2. 국가별 분석 과정 및 결과
 
-### 1. GDP와 AI 세율 간의 관계 분석 (비선형 회귀: OLS 회귀 분석)
-  - AI 세율(AI Tax Proxy)과 GDP 간의 관계를 회귀 분석
-  - 비선형 모델을 사용하여 최적 세율을 찾음
-  - Laffer Curve를 활용한 최적 AI 세율 계산
+### 2.1 국가별 GDP와 높은 상관관계를 가진 변수 선정  
+- 아래는 국가별로 GDP와 높은 상관관계를 가진 변수들을 정리하였다.(Threshold = 0.45)  
 
-### 2. 조세 수입과 경제 성장 간의 관계를 나타내는 Laffer Curve를 적용
-  - GDP 극대화 포인트를 찾기 위해 2차 함수 모델을 피팅
+| 국가  | 상관관계 높은 변수들 |
+|--------|----------------------------------------------------------------------------------------------------------------|
+| **China**  | Business sophistication, Creative outputs, GDP_per_capita_PPP, GERD, GNI_per_capita, Global Innovation Index, Human capital and research, Infrastructure, Institutions, Internet Usage, Market sophistication, Patent Publications, WIPO Tax |
+| **France** | GNI_per_capita, Human capital and research, Infrastructure, Internet Usage, Knowledge and technology outputs, Patent Publications |
+| **USA**    | Business sophistication, Corporate Tax, GDP_per_capita_PPP, GERD, GNI_per_capita, Global Innovation Index, Internet Usage, Knowledge and technology outputs, Market sophistication, WIPO Tax |
+| **Germany** | Business sophistication, Creative outputs, GDP_per_capita_PPP, GERD, GNI_per_capita, General Revenue, Human capital and research, Internet Usage, Market sophistication, Unemployment Rate, WIPO Tax |
+| **Japan**  | GERD, Institutions, Knowledge and technology outputs, Market sophistication |
+| **Korea**  | Business sophistication, Corporate Tax, Creative outputs, GDP_per_capita_PPP, GERD, GNI_per_capita, General Revenue, Global Innovation Index, Human capital and research, Internet Usage, Market sophistication, Patent Publications, Unemployment Rate, WIPO Tax |
+| **UK**     | GNI_per_capita, General Revenue, Institutions, Knowledge and technology outputs, WIPO Tax |
 
-### 3. Elasticity Analysis (탄력성 분석) 및 최적화 알고리즘 적용
-  - AI 세율 변화에 따른 기업 투자, AI 특허, 경제 성장률 감소 비율을 확인
-  - AI 세율을 조정하여 기업 투자 및 경제 성장을 극대화하는 최적 세율(𝜏)을 찾기 위한 최적화 알고리즘 적용
+---
 
-## 3️. 분석 결과 해석
+### 2.2 국가별 최적 차수 및 AI 세율 Proxy 선정  
+- 국가별로 2~6차의 다항 회귀 모델을 적용하여 BIC 기준으로 최적 차수를 결정하였고, 2 ~ 4개의 변수의 조합을 실행하여 최적 AI 세율 Proxy를 선정
 
-### Laffer Curve 최적화 결과
+| 국가  | 최적 차수 | 최적 AI 세율 Proxy |
+|--------|----------|--------------------------------------------------|
+| **China**  | 6 | AI_Tax_Proxy_Business sophistication_GDP_per_capita_PPP_GERD |
+| **France** | 2 | AI_Tax_Proxy_GNI_per_capita_Internet Usage |
+| **USA**    | 6 | AI_Tax_Proxy_GDP_per_capita_PPP_GERD_GNI_per_capita |
+| **Germany** | 6 | AI_Tax_Proxy_Business sophistication_GDP_per_capita_PPP_Internet Usage |
+| **Japan**  | 6 | AI_Tax_Proxy_GERD_Institutions |
+| **Korea**  | 6 | AI_Tax_Proxy_GERD_GNI_per_capita_WIPO Tax |
+| **UK**     | 5 | AI_Tax_Proxy_Institutions_WIPO Tax |
 
-## 정책적 시사점
-- 현재 AI 세율이 존재하지 않아 GDP와의 상관관계가 높은(Threshold = 0.5) 후보 변수를 선정하여 최적 차수와 최적 AI 세율 Proxy로 설정 가능한 정보는 아래와 같다.
-    **최적 차수**: 2, 
-    **최적 AI 세율 Proxy**: AI_Tax_Proxy_Knowledge and technology outputs_Patent Publications
-- 0 ~ 0.5%까지의 세율을 결정했을 때, 0.05수준에서 Laffer Curve와 최적화 알고리즘을 적용했을 때 GDP가 가장 높은 수준으로 나타났음.
+
+### 2.3 국가별 Laffer Curve 분석 및 최적 AI 세율 도출  
+- 최적 AI 세율 Proxy를 사용하여 국가별로 Laffer Curve를 학습하였으며, 이를 기반으로 최적 AI 세율을 도출
+
+| 국가  | 최적 AI 세율 (Laffer Curve 결과) |
+|--------|--------------------------------|
+| **China**  | 8.76%  |
+| **France** | 11.71% |
+| **USA**    | 16.58% |
+| **Germany** | 10.21% |
+| **Japan**  | 7.14%  |
+| **Korea**  | 9.68%  |
+| **UK**     | 7.72%  |
+
+**Figure 1. 전체 Laffer Curve 분석 결과** 
+
 ![alt text](R_Laffer_Curve.png)
 
-## 4. 결론 및 최적 AI 세율 설정
+---
 
-### Trouble Shooting
+### 3. 국가별 AI 세율 변화 시각화  
+
+- 국가별 AI 세율 변화를 나타내었다.
+
+📌 **Figure 2. 국가별 최적 AI 세율 시각화**  
+
+![alt text](R_Laffer_Curve_Country.png)
+
+---
+
+---
+
+## 4. 결론 및 정책적 시사점  
+- 본 연구에서는 AI 세율의 최적 수준을 찾기 위해 국가별 AI 세율 Proxy를 도출하고, 이를 활용한 Laffer Curve 및 최적화 알고리즘을 적용.  
+- 분석 결과, 국가별 최적 AI 세율은 상이하게 나타났으며, 이는 국가마다 AI 투자 환경, 경제 규모, 조세 정책 등에 따라 영향을 받을 수 있음을 보여준다.  
+- AI 세율을 고정적인 수준으로 설정하는 것보다, GDP 성장 극대화를 위한 동적 조정이 필요하다는 점을 확인  
+- 향후 연구에서는 AI 세율과 기업 혁신 투자 간의 관계를 보다 정밀하게 분석하고, 더 많은 데이터를 활용하여 분석하고 AI 기술 발전 속도를 고려한 정책적 조정이 필요할 것으로 보인다.  
+
+---
+
+## 5. Trouble Shooting
 #### 1. 최적 세율이 0%로 나오는 문제
   - 다항 회귀 모델 계수 (β1, β2) 값이 비정상적으로 작거나 부적절하게 설정
     - x1(1차항)의 P-value: 0.537 (유의하지 않음)
