@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title('Multi Page Link')
+st.title('AI 기반 세율 최적화, 경제적 영향 분석 연구 및 시스템')
 st.page_link("./home.py", label="Home", icon="🏠")
 st.page_link("./pages/analyze.py", label="analyze")
 st.page_link("./pages/data.py", label="Data")
