@@ -140,8 +140,8 @@ def synthetic_control(country, country_df):
     diff_table = pd.concat([diff_df, summary_df], ignore_index=True)
     
     fig = px.line(country_df, x="Year", y=["GDP", "Synthetic GDP"],
-                  title=f"{country}: Actual vs. Synthetic GDP",
-                  markers=True)
+                title=f"{country}: Actual vs. Synthetic GDP",
+                markers=True)
     diff_series = country_df["Difference"]
     max_idx = diff_series.idxmax()
     min_idx = diff_series.idxmin()
