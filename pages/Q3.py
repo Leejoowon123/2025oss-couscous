@@ -46,7 +46,7 @@ report_md = """
 ## **2️⃣ 분석 결과 및 시각화**
 - **Counterfactual Analysis**: 선택한 국가의 AI 세율 도입 시 예상 GDP 변화율 및 변화량 표시
 - **Synthetic Control Method**: 실제 GDP와 Synthetic GDP의 차이를 연도별로 나타내는 표와 그래프로 시각화
-- **Macroeconomic Simulation**: 실제 GDP 추세(2013~2022년)와 예측 GDP 추세(2023~2027년)가 연결하여 시각화
+- **Macroeconomic Simulation**: 실제 GDP 추세(2013 ~ 2022년)와 예측 GDP 추세(2023 ~ 2027년)가 연결하여 시각화
 
 ---
 
