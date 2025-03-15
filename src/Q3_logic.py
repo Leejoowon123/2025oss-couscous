@@ -146,19 +146,19 @@ def synthetic_control(country, country_df):
     max_idx = diff_series.idxmax()
     min_idx = diff_series.idxmin()
     fig.add_trace(go.Scatter(x=[country_df.loc[max_idx, "Year"]],
-                             y=[country_df.loc[max_idx, "GDP"]],
-                             mode="markers+text",
-                             text=[f"Max Diff: {diff_series[max_idx]:.2f}"],
-                             textposition="top center",
-                             marker=dict(color="green", size=12),
-                             name="Maximum Difference"))
+                            y=[country_df.loc[max_idx, "GDP"]],
+                            mode="markers+text",
+                            text=[f"Max Diff: {diff_series[max_idx]:.2f}"],
+                            textposition="top center",
+                            marker=dict(color="green", size=12),
+                            name="Maximum Difference"))
     fig.add_trace(go.Scatter(x=[country_df.loc[min_idx, "Year"]],
-                             y=[country_df.loc[min_idx, "GDP"]],
-                             mode="markers+text",
-                             text=[f"Min Diff: {diff_series[min_idx]:.2f}"],
-                             textposition="bottom center",
-                             marker=dict(color="red", size=12),
-                             name="Minimum Difference"))
+                            y=[country_df.loc[min_idx, "GDP"]],
+                            mode="markers+text",
+                            text=[f"Min Diff: {diff_series[min_idx]:.2f}"],
+                            textposition="bottom center",
+                            marker=dict(color="red", size=12),
+                            name="Minimum Difference"))
     
     diff_table = diff_table.reset_index(drop=True)
     return diff_table, fig
@@ -207,8 +207,8 @@ def macroeconomic_simulation(country, country_df):
 
     # 연결: 2022년과 2023년 예측값 단순 선 연결
     fig.add_trace(go.Scatter(x=[last_actual_year, forecast_years[0]],
-                             y=[last_actual_gdp, forecast_df["GDP"].iloc[0]],
-                             mode="lines", line=dict(color="red", dash="dot"), showlegend=False))
+                            y=[last_actual_gdp, forecast_df["GDP"].iloc[0]],
+                            mode="lines", line=dict(color="red", dash="dot"), showlegend=False))
     
     max_gdp = full_df["GDP"].max()
     min_gdp = full_df["GDP"].min()
