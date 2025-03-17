@@ -121,6 +121,3 @@ if forecast_user is not None:
     st.subheader("미래 5년 예측값 (전체, 사용자)")
     forecast_user_display = forecast_user_df.copy().round(2)
     st.table(forecast_user_display)
-
-st.subheader("GDP 추세 시각화")
-st.plotly_chart(fig, use_container_width=True, key="gdp_chart2")
