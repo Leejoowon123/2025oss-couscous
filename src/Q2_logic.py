@@ -1,146 +1,198 @@
+# src/Q2_logic.py
+import os
+import json
 import numpy as np
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from scipy.optimize import curve_fit, differential_evolution
-from itertools import combinations
-from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
 import streamlit as st
+from itertools import combinations
+from scipy.optimize import curve_fit, differential_evolution, dual_annealing, shgo
+import plotly.graph_objects as go
+from sklearn.metrics import r2_score
+import statsmodels.api as sm
+from linearmodels.iv import IVGMM
 
-# 랜덤 시드
-np.random.seed(42)
+########################################
+# 1. Laffer Curve (Quadratic) Definition
+########################################
 
-# Laffer Curve 함수 정의
 def laffer_curve(x, a, b, c):
+    """
+    라퍼 곡선 함수 (Quadratic)
+    GDP = a * x^2 + b * x + c
+    """
     return a * x**2 + b * x + c
 
-# 데이터 로드 함수
-def load_data():
-    conn = st.connection("ossdb", type="sql", autocommit=True)
+########################################
+# 2. Single Variable Approach with File Caching
+########################################
 
-    sql = """
-        SELECT *
-        FROM master_data_by_category_clear
-        WHERE 1=1;
+def fit_laffer_curve_single(df, var, gdp_col="GDP"):
     """
+    단일 변수 var와 GDP 간의 라퍼 곡선 피팅 후,
+    결정계수(R²), 추정 파라미터(popt), 사용 데이터, 그리고 x 값을 반환합니다.
+    """
+    data = df.dropna(subset=[var, gdp_col]).copy()
+    if len(data) < 5:
+        return None, None, None, None
+    x = data[var].values
+    y = data[gdp_col].values
 
-    df = conn.query(sql, ttl=3600)
+    p0 = [-0.1, 1.0, np.mean(y)]
+    try:
+        popt, _ = curve_fit(laffer_curve, x, y, p0=p0)
+    except Exception as e:
+        st.warning(f"[{var}] 라퍼 곡선 피팅 실패: {e}")
+        return None, None, None, data
+    y_pred = laffer_curve(x, *popt)
+    r2 = r2_score(y, y_pred)
+    return popt, r2, data, x
 
-    country_dfs = {
-        "China": df[df["Country"] == "China"].copy(),
-        "France": df[df["Country"] == "France"].copy(),
-        "USA": df[df["Country"] == "United States of America"].copy(),
-        "Germany": df[df["Country"] == "Germany"].copy(),
-        "Japan": df[df["Country"] == "Japan"].copy(),
-        "Korea": df[df["Country"] == "Korea"].copy(),
-        "UK": df[df["Country"] == "United Kingdom"].copy(),
-    }
+def optimize_tax_multiple_algorithms(popt, x_bound=(0.0, 5.0)):
+    """
+    여러 최적화 알고리즘을 사용하여, 추정된 라퍼 곡선에서 GDP를 최대화하는 세율을 찾습니다.
+    반환: { "algorithm_name": (optimal_tax, max_predicted_GDP), ... }
+    """
+    def objective(t):
+        return -laffer_curve(t, *popt)
 
-    return df, country_dfs
+    results = {}
+    try:
+        res_de = differential_evolution(objective, bounds=[x_bound])
+        tax_de = res_de.x[0]
+        max_gdp_de = laffer_curve(tax_de, *popt)
+        results["DifferentialEvolution"] = (tax_de, max_gdp_de)
+    except Exception as e:
+        results["DifferentialEvolution"] = (None, None)
+        st.warning(f"differential_evolution 최적화 실패: {e}")
+    try:
+        res_da = dual_annealing(objective, bounds=[x_bound])
+        tax_da = res_da.x[0]
+        max_gdp_da = laffer_curve(tax_da, *popt)
+        results["DualAnnealing"] = (tax_da, max_gdp_da)
+    except Exception as e:
+        results["DualAnnealing"] = (None, None)
+        st.warning(f"dual_annealing 최적화 실패: {e}")
+    try:
+        res_shgo = shgo(objective, bounds=[x_bound])
+        tax_shgo = res_shgo.x[0]
+        max_gdp_shgo = laffer_curve(tax_shgo, *popt)
+        results["SHGO"] = (tax_shgo, max_gdp_shgo)
+    except Exception as e:
+        results["SHGO"] = (None, None)
+        st.warning(f"shgo 최적화 실패: {e}")
+    return results
 
-# GDP와 높은 상관관계를 가진 변수 선택
-def get_high_corr_vars(country_df, threshold=0.45):
+########################################
+# 3. Combination Variable Approach with File Caching
+########################################
 
-    country_numeric_df = country_df.select_dtypes(include=[np.number]).drop(["GDP", "Year"], axis=1, errors="ignore")
-    correlations = country_numeric_df.corrwith(country_df["GDP"]).dropna().abs()
+def combine_variables(df, vars_to_combine):
+    """
+    지정된 변수 목록(vars_to_combine)을 2~3개 조합하여,
+    단순 평균으로 복합 변수를 생성합니다.
+    """
+    cols = list(vars_to_combine)
+    subset = df.dropna(subset=cols)
+    if len(subset) < 5:
+        return None
+    subset = subset.copy()
+    subset["combined_var"] = subset[cols].mean(axis=1)
+    return subset
+
+def build_combinations_of_variables(df, candidate_vars, max_comb=3, r2_filter=0.8):
+    """
+    candidate_vars 중 2~3개 조합을 생성하여 복합 변수를 구성하고,
+    복합 변수에 대해 라퍼 곡선 피팅 및 최적 세율 도출 결과를 반환합니다.
+    결과는 CSV 파일("data/combo_results.csv")에 저장하며, 파일이 있으면 이를 불러옵니다.
+    최종 결과 중 결정계수(R²)가 r2_filter 이상인 결과만 반환합니다.
+    """
+    base_path = os.path.join("data")
+    os.makedirs(base_path, exist_ok=True)
+    filename = os.path.join(base_path, "combo_results.csv")
     
-    return correlations[correlations > threshold].index.tolist()
-
-# AI 세율 Proxy 후보 생성
-def find_best_proxy(country_df, high_corr_vars):
-    if not high_corr_vars:
-        return []
-
-    proxy_candidates = []
-    scaler = MinMaxScaler(feature_range=(0, 0.5))
-
-    for r in range(2, 4):
-        for combo in combinations(high_corr_vars, r):
-            valid_combo = [col for col in combo if col in country_df.columns]
-            if len(valid_combo) == r:
-                proxy_name = f"AI_Tax_Proxy_{'_'.join(valid_combo)}"
-                df_scaled = scaler.fit_transform(country_df[valid_combo])
-                country_df[proxy_name] = df_scaled.mean(axis=1)
-                proxy_candidates.append(proxy_name)
-
-    return proxy_candidates
-
-# 최적 모델 선택
-def find_best_model(country_df, proxy_candidates):
-    if not proxy_candidates:
-        return None, None
-
-    best_degree = 1
-    best_bic = np.inf
-    best_proxy = None
-
-    for proxy in proxy_candidates:
-        X = country_df[[proxy]].values
-        y = country_df["GDP"].values
-
-        for d in range(2, 7):
-            poly = PolynomialFeatures(degree=d)
-            X_poly = poly.fit_transform(X)
-            model = LinearRegression()
-            model.fit(X_poly, y)
-            y_pred = model.predict(X_poly)
-            bic = len(y) * np.log(mean_squared_error(y, y_pred)) + d * np.log(len(y))
-
-            if bic < best_bic:
-                best_bic = bic
-                best_degree = d
-                best_proxy = proxy
-
-    return best_degree, best_proxy
-
-# 최적 AI 세율 및 Laffer Curve 파라미터 계산 (국가별 & 전체 데이터)
-def get_optimal_ai_tax(country_df):
-
-    high_corr_vars = get_high_corr_vars(country_df)
-
-    country_df = country_df[["Country", "Year", "GDP"] + high_corr_vars]
-    proxy_candidates = find_best_proxy(country_df, high_corr_vars)
-    best_degree, best_proxy = find_best_model(country_df, proxy_candidates)
-
-    if not best_proxy:
-        return None, None
-
-    X_proxy = country_df[[best_proxy]].values.flatten()
-    y_gdp = country_df["GDP"].values
-
-    if best_degree > 1:
+    if os.path.exists(filename):
         try:
-            params, _ = curve_fit(laffer_curve, X_proxy, y_gdp, p0=[-0.5, 0.1, y_gdp.mean()])
-        except RuntimeError:
-            return None, None
-    else:
-        params = [0, 0, y_gdp.mean()]
+            results_df = pd.read_csv(filename)
+            if "OptResults" in results_df.columns:
+                results_df["OptResults"] = results_df["OptResults"].apply(lambda s: json.loads(s))
+            filtered = results_df[results_df["R2"] >= r2_filter]
+            return filtered.to_dict("records")
+        except Exception as e:
+            st.warning(f"복합 변수 결과 CSV 로드 실패: {e}")
+    
+    combos = []
+    for r in range(2, max_comb+1):
+        for combo in combinations(candidate_vars, r):
+            combos.append(combo)
+    results = []
+    for combo in combos:
+        merged_df = combine_variables(df, list(combo))
+        if merged_df is None:
+            continue
+        var_name = "+".join(combo)
+        popt, r2, data, x = fit_laffer_curve_single(merged_df, "combined_var")
+        if popt is None:
+            continue
+        opt_results = optimize_tax_multiple_algorithms(popt, x_bound=(0.0, 5.0))
+        result_row = {
+            "Combo": str(combo),
+            "NewVarName": var_name,
+            "R2": r2,
+            "Params": popt.tolist(),
+            "OptResults": opt_results
+        }
+        if r2 >= r2_filter:
+            results.append(result_row)
+    results_df = pd.DataFrame(results)
+    try:
+        results_df["OptResults"] = results_df["OptResults"].apply(json.dumps)
+        results_df.to_csv(filename, index=False, quoting=1)
+        results_df["OptResults"] = results_df["OptResults"].apply(json.loads)
+    except Exception as e:
+        st.warning(f"CSV 저장 실패: {e}")
+    return results_df.to_dict("records")
 
-    def optimize_tax(tax_rate):
-        return -laffer_curve(tax_rate, *params)
+########################################
+# 4. 종합 실행 로직 (IVGMM 부분 제거)
+########################################
 
-    bounds = [(0, 0.4)]
-    opt_result = differential_evolution(optimize_tax, bounds, seed=42)
-    optimal_tax = opt_result.x[0]
+def filter_variables_by_policy_and_r2(df, var_list, r2_threshold=0.3):
+    """
+    정책적 타당성과 결정계수(R²)를 고려하여,
+    변수명에 'tax', 'revenue', 'unemployment' 등이 포함되고 R² >= r2_threshold인 변수를 선별합니다.
+    """
+    selected = []
+    for var in var_list:
+        if any(kw in var.lower() for kw in ["tax", "revenue", "unemployment"]):
+            popt, r2, data, x = fit_laffer_curve_single(df, var)
+            if popt is not None and r2 is not None and r2 >= r2_threshold:
+                selected.append((var, r2, popt))
+    return selected
 
-    return optimal_tax, params
+def analyze_single_variables(df, exclude_cols={"Country", "year", "Year", "GDP"}):
+    """
+    단일 변수 접근: Country, year, GDP를 제외한 변수에 대해 라퍼 곡선 피팅 및 최적 세율 도출 결과를 반환합니다.
+    """
+    candidate_vars = [c for c in df.columns if c not in exclude_cols]
+    results_list = []
+    for var in candidate_vars:
+        popt, r2, data, x = fit_laffer_curve_single(df, var)
+        if popt is None:
+            continue
+        opt_results = optimize_tax_multiple_algorithms(popt, x_bound=(0.0, 5.0))
+        results_list.append({
+            "Variable": var,
+            "R2": r2,
+            "Params": popt.tolist(),
+            "OptResults": opt_results
+        })
+    return results_list
 
-# 최적 AI 세율 그래프
-def plot_laffer_curve(country, optimal_tax, laffer_params):
-    x_vals = np.linspace(0, 0.5, 100)
-    y_vals = laffer_curve(x_vals, *laffer_params)
-
-    fig = go.Figure()
-
-    fig.add_trace(go.Scatter(x=x_vals, y=y_vals, mode='lines', name="Laffer Curve", line=dict(color="blue")))
-    fig.add_trace(go.Scatter(x=[optimal_tax], y=[laffer_curve(optimal_tax, *laffer_params)], 
-                            mode='markers', name="Optimal AI Tax", marker=dict(color="red", size=10)))
-
-    fig.update_layout(title=f"{country} - Optimal AI Tax Rate",
-                    xaxis_title="AI Tax Rate",
-                    yaxis_title="GDP",
-                    template="plotly_white")
-
-    return fig
+def analyze_all(df):
+    """
+    전체 단일 변수 접근과 복합 변수 접근 결과를 모두 반환합니다.
+    """
+    candidate_vars = [c for c in df.columns if c not in ["Country", "year", "Year", "GDP"]]
+    single_results = analyze_single_variables(df)
+    combo_results = build_combinations_of_variables(df, candidate_vars, max_comb=3, r2_filter=0.8)
+    return single_results, combo_results
