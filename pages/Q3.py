@@ -21,14 +21,6 @@ def app_Q3():
        - 각 국가별로 GDP, 실업률, GERD를 동시에 고려한 VAR 모형 예측 결과를 개별 선그래프로 시각화합니다.
     3. **VECM 모형:**  
        - 각 국가별로 VECM 모형을 적용하여 2023~2027년 예측 결과를 도출하고, GDP, 실업률, GERD를 개별 선그래프로 시각화합니다.
-    4. **SVAR 모형:**  
-       - 각 국가별로 SVAR 모형을 적용하여 2023~2027년 예측 결과를 도출하고, GDP, 실업률, GERD를 개별 선그래프로 시각화합니다.
-    5. **반사실 분석:**  
-       - 각 국가별로 단일 VAR 모형 예측 결과와 log-log 회귀를 통해 추정한 AI 세율 효과(탄력성)를 반영하여,  
-         counterfactual GDP 시나리오를 도출하고 이를 개별 선그래프로 시각화합니다.
-    6. **합성 통제법:**  
-       - 각 국가별로 L1/L2 정규화 기반 최적화 기법을 적용하여 도출한 합성 통제 결과를,  
-         GDP, 실업률, GERD 각각에 대해 개별 선그래프로 시각화합니다.
     """)
     
     df = load_data()
@@ -125,104 +117,12 @@ def app_Q3():
     else:
         st.warning("VECM 예측 결과가 없습니다.")
 
-    
-    # 4. 합성 통제법 결과: 각 국가별, 변수별
-    st.markdown("### 5) 합성 통제법 결과 (각 변수별)")
-
-    # (1) 변수 목록
-    target_vars = ['GDP', 'Unemployment Rate', 'GERD']
-    
-    for var in target_vars:
-        st.markdown(f"#### {var} 합성 통제법")
-        fig_sc = go.Figure()
-        
-        # 국가별 합성통제법 결과를 반복
-        for country, diff_df in macro_results["synthetic_controls"].get(var, {}).items():
-            # 합성통제법 함수가 (None, None)을 반환하면 diff_df가 None이 될 수 있으므로 체크
-            if diff_df is None:
-                continue
-            
-            # 필요한 연도(2023~2027)에 해당하는 부분만 필터링
-            diff_df = diff_df.reset_index()
-            diff_df = diff_df[diff_df["Year"].isin(forecast_years)]
-            if diff_df.empty:
-                continue
-            
-            # 실제값(Actual), 합성값(Synthetic), Difference를 한 그래프에 그리되,
-            # 국가별로 구분하기 위해 label에 country 표시
-            fig_sc.add_trace(go.Scatter(
-                x=diff_df["Year"],
-                y=diff_df["Actual"],
-                mode="lines+markers",
-                name=f"{country} - Actual"
-            ))
-            fig_sc.add_trace(go.Scatter(
-                x=diff_df["Year"],
-                y=diff_df["Synthetic"],
-                mode="lines+markers",
-                name=f"{country} - Synthetic"
-            ))
-            fig_sc.add_trace(go.Scatter(
-                x=diff_df["Year"],
-                y=diff_df["Difference"],
-                mode="lines+markers",
-                name=f"{country} - Difference"
-            ))
-        
-        fig_sc.update_layout(
-            title=f"합성 통제법: {var} (Actual vs Synthetic, 2023~2027)",
-            xaxis_title="Year",
-            yaxis_title=f"{var} 값"
-        )
-        st.plotly_chart(fig_sc, use_container_width=True)
-    
-    # (2) 합성 통제법 결과를 표로 확인
-    st.markdown("### 합성 통제법 결과 테이블 (국가별, 변수별)")
-
-    for var in target_vars:
-        st.markdown(f"**{var} 합성 통제법 결과 데이터**")
-        
-        # 결과를 모아서 테이블화
-        table_data = []
-        for country, diff_df in macro_results["synthetic_controls"].get(var, {}).items():
-            if diff_df is None:
-                continue
-            
-            # 2023~2027년만 필터링
-            diff_df = diff_df.reset_index()
-            diff_df = diff_df[diff_df["Year"].isin(forecast_years)]
-            if diff_df.empty:
-                continue
-            
-            # 테이블에 기록
-            for _, row in diff_df.iterrows():
-                table_data.append([
-                    var,
-                    country,
-                    int(row["Year"]),
-                    row["Actual"],
-                    row["Synthetic"],
-                    row["Difference"]
-                ])
-        
-        if table_data:
-            result_df = pd.DataFrame(table_data, columns=[
-                "Variable", "Country", "Year", "Actual", "Synthetic", "Difference"
-            ])
-            st.dataframe(result_df)
-        else:
-            st.warning(f"{var}에 대한 합성 통제법 결과가 없습니다.")
-
 
     st.markdown("""
     ## 결론 및 추가 제언
-    - 본 연구는 VAR, VECM, SVAR 모형과 반사실 분석, L1/L2 정규화 기반 합성 통제법을 통해 
-      AI 세율 정책이 GDP, 실업률, GERD 등 주요 경제 지표에 미치는 효과를 다각도로 평가하였습니다.
+    - 본 연구는 VAR, VECM 모형을 통해 AI 세율 정책이 GDP, 실업률, GERD 등에에 주요 경제 지표에 미치는 효과를 다각도로 평가하였습니다.
     - 각 모형을 통한 예측 결과는 2023년부터 2027년까지의 미래 경제 지표 변화를 명확히 보여주며,  
       국가별 및 전체 국가 평균의 추이를 종합적으로 파악할 수 있습니다.
-    - 반사실 분석은 AI 세율 효과를 정교하게 추정하여 정책 변화가 GDP에 미치는 실제 영향을 반영한 counterfactual 시나리오를 제공합니다.
-    - 합성 통제법은 대상 국가와 도너 국가 간의 최적 가중치 산출을 통해, 실제와 합성 결과의 차이를 정밀하게 평가합니다.
-    - 이러한 결과는 정부가 AI 세율 도입과 함께, 기업 지원 및 노동시장 보완 정책을 수립하는 데 중요한 정량적 근거를 제공합니다.
     - 향후 연구에서는 각 모형의 민감도 분석, 외부 충격 모형 확장 및 추가 거시경제 변수 도입을 통해  
       정책 효과의 신뢰성과 타당성을 더욱 강화할 필요가 있습니다.
     """)

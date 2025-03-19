@@ -8,6 +8,3 @@ st.page_link("./pages/Q1.py", label="Qusetion 1")
 st.page_link("./pages/Q2.py", label="Question 2")
 st.page_link("./pages/Q3.py", label="Qusetion 3")
 st.page_link("./pages/System.py", label="System")
-# st.page_link("./pages/System_2.py", label="System 2")
-# 아이콘을 숨기기
-# st.page_link("./pages/text.py", label="Page 2", icon="2️⃣", disabled=True)
