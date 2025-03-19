@@ -191,14 +191,80 @@ AI 세금 도입을 뒷받침하는 경제적 논리는 다음과 같다.
 ### 5.1 웹 애플리케이션 기능 개요  
 본 연구에서는 AI 세율 최적화 모델 및 경제 분석 결과를 활용하여 정책 결정자들이 시뮬레이션을 수행할 수 있도록 **Streamlit 웹 애플리케이션**을 개발하였다.
 
-### 5.2 현재 구현된 기능  
+### 5.2-1 시스템 구성도
 
+```mermaid
+graph TD
+   A[데이터베이스 master_data_by_category_clear]
+   B[데이터 로드 <br> load_data]
+   C[데이터 전처리, 변수 선택 <br>get_high_corr_vars, find_best_proxy]
+   D[모델 선택 및 최적화 <br> find_best_model, laffer_curve, get_optimal_ai_tax]
+   E[거시경제 시뮬레이션 macroeconomic_simulation, compute_changes]
+   F[프레젠테이션 계층 <br> System.py Streamlit UI + Plotly]
+   G[사용자 입력 <br>국가 선택, AI 세율 슬라이더]
+   
+   A --> B
+   B --> C
+   C --> D
+   D --> E
+   E --> F
+   G --> F
+```
+
+### 5.2-2 시스템 아키텍처 설명
+#### 1 데이터 계층 (Data Layer)
+- **데이터베이스 (ossdb)**
+  - `master_data_by_category_clear` 테이블에 저장된 경제 데이터를 사용
+- **데이터 로드**
+  - `load_data()` 함수는 Streamlit의 데이터베이스 연결 기능을 통해 데이터를 불러오며, 국가별 데이터프레임(China, France, USA, Germany, Japan, Korea, UK)으로 분리
+
+#### 2 비즈니스 로직 계층 (Business Logic Layer)
+- **데이터 전처리 및 변수 선택**
+  - `get_high_corr_vars()` 함수를 이용해 GDP와 높은 상관관계를 가지는 수치형 변수들을 선택.
+  - `find_best_proxy()` 함수는 선택된 변수들의 2~3개 조합을 통해 Proxy 후보 변수를 생성.
+
+- **모델 선택 및 최적화**
+  - `find_best_model()` 함수는 다항 회귀 및 BIC 기준을 활용해 최적의 Proxy 변수와 회귀 차수를 결정.
+  - `laffer_curve()` 함수를 사용해 비선형 관계를 모델링하고, `curve_fit` 및 `differential_evolution`을 통해 최적 AI 세율을 산출하는 `get_optimal_ai_tax()` 함수를 구현.
+
+- **거시경제 시뮬레이션**
+  - `macroeconomic_simulation()` 함수는 VARMAX 모델을 사용해 외생 변수(세율)를 포함한 시계열 예측을 수행.
+  - `compute_changes()` 함수는 예측된 경제 지표와 실제 값 간의 연간 변화량(차분)을 계산.
+
+#### 3 프레젠테이션 계층 (Presentation Layer)
+- **사용자 인터페이스 (UI)**
+  - `System.py`는 Streamlit을 사용하여 웹 기반 UI를 제공하며, 사용자가 분석할 국가 선택 및 AI 세율 조정을 위한 슬라이더를 제공.
+
+- **결과 시각화**
+  - Plotly를 사용하여 실제 GDP와 예측 GDP(사용자 입력 및 최적 AI 세율 적용 결과)를 시각적으로 비교하는 그래프를 생성.
+  - 예측 결과와 전년 대비 변화량을 표 형태로 출력하여 사용자가 쉽게 분석 결과를 확인할 수 있도록 설계.
+
+### 5.2-3 데이터 흐름 및 통합
+1. **데이터 로드**  
+   - 데이터베이스 → `load_data()` → 국가별 데이터프레임 생성.
+2. **전처리 및 변수 선택**  
+   - 국가별 데이터 → `get_high_corr_vars()` 및 `find_best_proxy()` → Proxy 후보 생성.
+3. **모델 최적화 및 최적 세율 산출**  
+   - Proxy 후보 → `find_best_model()` → 최적 모델 선택 → `get_optimal_ai_tax()` → 최적 AI 세율 및 Laffer Curve 파라미터 산출.
+4. **거시경제 시뮬레이션**  
+   - 최적 세율과 사용자 입력 세율을 각각 반영하여 `macroeconomic_simulation()`을 통해 미래 5년 예측 수행 → `compute_changes()`를 통해 변화량 계산
+5. **결과 시각화 및 UI 출력**  
+   - 예측 결과 → Plotly 그래프 및 표로 시각화 → Streamlit UI를 통해 사용자에게 출력
+
+### 5.2-4 AI 세율 적용 시뮬레이션 주요 기능
 - **사용자가 데이터 확인**  
 - **Q1에 관한 분석 내용**  
 - **Q2에 관한 분석 내용**  
 - **Q3에 관한 분석 내용**
 - **국가별 AI 세율 도입 시 GDP 변화율(%) 분석 시뮬레이션** 
 - **Streamlit 기반 인터페이스에서 AI 세율 조정 후 경제 변화 확인**  
+
+### 5.2-5 AI 세율 적용 시뮬레이션 기능 검토
+- 현재 VARMAX 모델로 시뮬레이션 결과 다음 년도가 가장 높게 나오는 값을 최적 세율로 선정하였다.
+- 미래 5년을 예측할 때 각 년도마다 다른 최적 세율을 도출하는 기능을 추가할 필요가 있음
+- 과거 데이터가 아닌 데이터가 추가될 경우를 대비하여 코드를 수정할 필요가 존재
+- 에러 핸들링 강화, 성능 최적화, 모듈화 및 확장성 강화, 그리고 추가 시나리오 분석 기능 도입 등이 고려 가능함
+
 
 ## Ⅵ. Conclusion (결론 및 정책적 시사점)  
 본 연구는 Q1, Q2, Q3의 실증 분석을 통해 다음과 같은 결론을 도출하였다.
