@@ -32,6 +32,8 @@ AI 세율과 관련된 기존 연구는 크게 두 가지 범주
 
 
 ### 😊 How to Install
+- ※
+
 1. 가상환경 설치
    ```bash
    python -3.11 -m venv .venv
@@ -299,6 +301,6 @@ graph TD
 - **WIPO Patent publications for AI**  
 - **다른 데이터**
 
-#### 3.3 거시경제 시뮬레이션(VAR 모델 활용)  
+#### 3.3 거시경제 시뮬레이션(VAR, VECM 모델 활용)  
 - **거시경제 데이터**
 - **UNESCO GERD as a percentage of GDP**
