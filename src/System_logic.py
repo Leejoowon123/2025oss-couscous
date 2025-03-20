@@ -93,7 +93,7 @@ def find_best_model(country_df, proxy_candidates):
     return best_degree, best_proxy
 
 # ---------------------------------
-# 최적 AI 세율 및 Laffer Curve 파라미터 산출 (Q2 방식)
+# 최적 AI 세율 및 Laffer Curve 파라미터 산출
 def get_optimal_ai_tax(country_df):
     high_corr_vars = get_high_corr_vars(country_df)
     df_mod = country_df[["Country", "Year", "GDP"] + high_corr_vars].copy()
