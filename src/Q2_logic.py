@@ -153,7 +153,7 @@ def build_combinations_of_variables(df, candidate_vars, max_comb=3, r2_filter=0.
     return results_df.to_dict("records")
 
 ########################################
-# 4. 종합 실행 로직 (IVGMM 부분 제거)
+# 4. 종합 실행 로직
 ########################################
 
 def filter_variables_by_policy_and_r2(df, var_list, r2_threshold=0.3):
